@@ -1,3 +1,5 @@
+use std::{fs::File, io::Read};
+
 use crate::http::{
     request::HttpRequest,
     response::HttpResponse,
@@ -31,5 +33,14 @@ impl Context {
     pub fn string(mut self, body: &str) -> HttpResponse {
         self.response.body = Some(body.into());
         self.response
+    }
+
+    pub fn file(self, file_path: &str) -> HttpResponse {
+        let mut file = File::open(file_path).unwrap();
+
+        let mut s = String::new();
+        file.read_to_string(&mut s).unwrap();
+
+        self.string(&s)
     }
 }
