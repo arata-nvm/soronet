@@ -11,22 +11,19 @@ use crate::{
         response::HttpResponse,
         status, HttpHeaders,
     },
-    server::{
-        context::Context,
-        handler::{Handler, HandlerFunction},
-    },
+    server::context::Context,
 };
 
+use self::handler::{Route, RouteHandler, StaticFileHandler};
+
 pub struct Server {
-    handlers: Vec<Handler>,
+    routes: Vec<Route>,
 }
 
 impl Server {
     pub fn new() -> Self {
         env_logger::init();
-        Self {
-            handlers: Vec::new(),
-        }
+        Self { routes: Vec::new() }
     }
 
     pub fn listen(&mut self, addr: &str) {
@@ -46,10 +43,10 @@ impl Server {
             stream.peer_addr().unwrap()
         );
 
-        for handler in &self.handlers {
-            if handler.method == (&req).method && handler.path == (&req).target {
+        for route in &self.routes {
+            if route.method == (&req).method && route.path == (&req).target {
                 let ctx = Context::new(req);
-                let response = (handler.f)(ctx);
+                let response = route.h.handle(ctx);
                 response.write_to(stream).unwrap();
                 return;
             }
@@ -67,11 +64,15 @@ impl Server {
         }
     }
 
-    pub fn add(&mut self, method: HttpMethod, path: &str, f: HandlerFunction) {
-        self.handlers.push(Handler {
+    pub fn add<H: RouteHandler + 'static>(&mut self, method: HttpMethod, path: &str, h: H) {
+        self.routes.push(Route {
             method,
             path: path.into(),
-            f,
+            h: Box::new(h),
         });
+    }
+
+    pub fn static_file(&mut self, path: &str, file_path: &str) {
+        self.add(HttpMethod::Get, path, StaticFileHandler::new(file_path));
     }
 }
