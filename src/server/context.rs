@@ -1,4 +1,4 @@
-use std::{fs::File, io::Read};
+use std::{collections::HashMap, fs::File, io::Read};
 
 use crate::http::{
     request::HttpRequest,
@@ -10,6 +10,7 @@ use crate::http::{
 pub struct Context {
     pub request: HttpRequest,
     pub response: HttpResponse,
+    pub params: HashMap<String, String>,
 }
 
 impl Context {
@@ -22,6 +23,7 @@ impl Context {
                 body: None,
             },
             request,
+            params: HashMap::new(),
         }
     }
 

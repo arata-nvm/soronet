@@ -11,10 +11,21 @@ fn main() {
         "/",
         FunctionHandler::new(|ctx| ctx.string("hogehoge")),
     );
+
     server.add(
         HttpMethod::Get,
         "/error",
         FunctionHandler::new(|ctx| ctx.status(status::NOT_FOUND).string("not found")),
+    );
+
+    server.add(
+        HttpMethod::Get,
+        "/users/{group}/{id}",
+        FunctionHandler::new(|ctx| {
+            let group = ctx.params.get("group").cloned().unwrap();
+            let id = ctx.params.get("id").cloned().unwrap();
+            ctx.string(&format!("group: {}\nid: {}", group, id))
+        }),
     );
 
     server.static_file("/static/index.html", "./public/index.html");
