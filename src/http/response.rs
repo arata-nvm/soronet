@@ -31,6 +31,11 @@ impl HttpResponse {
         self
     }
 
+    pub fn header(mut self, name: &str, value: &str) -> Self {
+        self.headers.insert(name.into(), value.into());
+        self
+    }
+
     pub fn string(mut self, body: &str) -> Self {
         self.body = Some(body.into());
         self
