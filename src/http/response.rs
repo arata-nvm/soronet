@@ -1,6 +1,12 @@
-use std::io::{self, Write};
+use std::{
+    fs::File,
+    io::{self, Read, Write},
+};
 
-use super::{status::HttpStatusCode, HttpHeaders};
+use super::{
+    status::{self, HttpStatusCode},
+    HttpHeaders,
+};
 
 #[derive(Debug)]
 pub struct HttpResponse {
@@ -11,6 +17,38 @@ pub struct HttpResponse {
 }
 
 impl HttpResponse {
+    pub fn new() -> Self {
+        Self {
+            version: "HTTP/1.1".into(),
+            status_code: status::OK,
+            headers: HttpHeaders::new(),
+            body: None,
+        }
+    }
+
+    pub fn status(mut self, status_code: HttpStatusCode) -> Self {
+        self.status_code = status_code;
+        self
+    }
+
+    pub fn string(mut self, body: &str) -> Self {
+        self.body = Some(body.into());
+        self
+    }
+
+    pub fn file(self, file_path: &str) -> HttpResponse {
+        let contents = File::open(file_path).map(|mut file| {
+            let mut s = String::new();
+            file.read_to_string(&mut s).unwrap();
+            s
+        });
+
+        match contents {
+            Ok(contents) => self.string(&contents),
+            Err(_) => self.status(status::NOT_FOUND),
+        }
+    }
+
     pub fn write_to<W: Write>(&self, w: &mut W) -> io::Result<()> {
         // status-line
         write!(
