@@ -1,3 +1,5 @@
+use regex::bytes::Regex;
+
 use crate::{
     http::{request::HttpMethod, response::HttpResponse},
     server::context::Context,
@@ -5,8 +7,14 @@ use crate::{
 
 pub struct Route {
     pub method: HttpMethod,
-    pub path: String,
+    pub path: Regex,
     pub h: Box<dyn RouteHandler>,
+}
+
+impl Route {
+    pub fn handle(&self, ctx: Context) -> HttpResponse {
+        self.h.handle(ctx)
+    }
 }
 
 pub trait RouteHandler {
