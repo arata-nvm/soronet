@@ -18,7 +18,7 @@ use crate::{
     server::context::Context,
 };
 
-use self::handler::{Route, RouteHandler, StaticFileHandler};
+use self::handler::{Route, RouteHandler, StaticDirHandler, StaticFileHandler};
 
 pub struct Server {
     routes: Vec<Route>,
@@ -98,6 +98,7 @@ impl Server {
         let path = param_regex.replace_all(path.as_bytes(), r"(?P<$n>\w+)".as_bytes());
         let path = format!("^{}$", String::from_utf8_lossy(path.as_ref()));
 
+        info!("Added route: {:?} {}, ", method, path);
         self.routes.push(Route {
             method,
             path: Regex::new(&path).unwrap(),
@@ -107,5 +108,13 @@ impl Server {
 
     pub fn static_file(&mut self, path: &str, file_path: &str) {
         self.add(HttpMethod::Get, path, StaticFileHandler::new(file_path));
+    }
+
+    pub fn static_dir(&mut self, path: &str, dir_path: &str) {
+        self.add(
+            HttpMethod::Get,
+            &format!(r"{}/.+", path),
+            StaticDirHandler::new(path, dir_path),
+        );
     }
 }

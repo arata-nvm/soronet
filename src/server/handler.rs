@@ -51,6 +51,27 @@ impl StaticFileHandler {
 
 impl RouteHandler for StaticFileHandler {
     fn handle(&self, ctx: Context) -> HttpResponse {
-        ctx.file(&self.file_path)
+        HttpResponse::new().file(&self.file_path)
+    }
+}
+
+pub struct StaticDirHandler {
+    pub path: String,
+    pub dir_path: String,
+}
+
+impl StaticDirHandler {
+    pub fn new(path: &str, dir_path: &str) -> Self {
+        Self {
+            path: path.into(),
+            dir_path: dir_path.into(),
+        }
+    }
+}
+
+impl RouteHandler for StaticDirHandler {
+    fn handle(&self, ctx: Context) -> HttpResponse {
+        let file_path = ctx.request.target.replace(&self.path, &self.dir_path);
+        HttpResponse::new().file(&file_path)
     }
 }
