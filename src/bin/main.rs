@@ -24,6 +24,16 @@ fn main() {
 
     server.add(
         HttpMethod::Get,
+        "/moved",
+        FunctionHandler::new(|_| {
+            HttpResponse::new()
+                .status(status::MOVED_PERMANENTLY)
+                .header("Location", "/")
+        }),
+    );
+
+    server.add(
+        HttpMethod::Get,
         "/users/{group}/{id}",
         FunctionHandler::new(|ctx| {
             let group = ctx.params.get("group").cloned().unwrap();
